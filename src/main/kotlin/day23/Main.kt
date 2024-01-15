@@ -1,6 +1,7 @@
 package day23
 
 import java.io.File
+import kotlin.math.max
 
 fun main() {
     val puzzleInput = File("day23/puzzleInput.txt").readText()
@@ -14,30 +15,72 @@ fun answer2(puzzleInput: String): Int {
 }
 
 fun answer(puzzleInput: String): Int {
+    val graph = parsePuzzleIntoGraph(puzzleInput)
+    return graph.findLongestPath()
+}
+
+private fun parsePuzzleIntoGraph(puzzleInput: String): Graph {
     val grid = Grid(puzzleInput.lines())
     val startingNode = makeNode((0 until grid.width()).map { Coord(it, 0) }.first { grid.cellAt(it) == '.' })
-    val endingNode = makeNode((0 until grid.width()).map { Coord(it, grid.height() - 1) }.first { grid.cellAt(it) == '.' })
+    val endingNode =
+        makeNode((0 until grid.width()).map { Coord(it, grid.height() - 1) }.first { grid.cellAt(it) == '.' })
     val queue = mutableListOf(Pair(startingNode, Direction.South))
-    val discoveredNodes = mutableListOf<Node>(startingNode, endingNode)
-    val discoveredPaths = mutableListOf<Path>()
+    val graph = Graph(startingNode, endingNode)
     while (queue.isNotEmpty()) {
         val start = queue.removeFirst()
         var paths = grid.nextFor(listOf(Pair(start.first.coord, start.second)))
-        while (paths.size == 1 && !discoveredNodes.map { it.coord }.contains(paths[0].last().second.applyTo(paths[0].last().first))) {
+        while (paths.size == 1 && !graph.nodeCoords().contains(paths[0].last().second.applyTo(paths[0].last().first))) {
             paths = grid.nextFor(paths[0])
         }
         if (paths.size > 1) {
             val node = makeNode(paths.first().last().first)
-            discoveredNodes.add(node)
-            discoveredPaths.add(Path(startingNode, node, paths[0].size - 1))
+            graph.addNode(node)
+            graph.addPath(Path(start.first, node, paths[0].size - 1))
             queue.addAll(paths.map { Pair(node, it.last().second) })
         } else {
-            val endNode = discoveredNodes.find { it.coord.equals(paths[0].last().second.applyTo(paths[0].last().first)) }!!
-            discoveredPaths.add(Path(startingNode, endNode, paths[0].size))
+            val endNode = graph.nodeFor(paths[0].last().second.applyTo(paths[0].last().first))
+            graph.addPath(Path(start.first, endNode, paths[0].size))
         }
     }
+    return graph
+}
 
-    return 0
+class Graph(val start: Node, val end: Node) {
+    val nodes = mutableListOf(start, end)
+    val paths = mutableListOf<Path>()
+
+    fun addNode(node: Node) {
+        nodes.add(node)
+    }
+
+    fun addPath(path: Path) {
+        paths.add(path)
+    }
+
+    fun nodeCoords(): List<Coord> = nodes.map { it.coord }
+    fun nodeFor(coord: Coord): Node {
+        return nodes.find { it.coord.equals(coord) }!!
+    }
+
+    fun findLongestPath(): Int {
+        val nodeDistances = nodes.map { it to Int.MIN_VALUE }.toMap().toMutableMap()
+        nodeDistances[start] = 0
+        val queue = mutableListOf<Node>()
+        val visited = mutableListOf<Node>()
+        queue.add(start)
+        while (queue.isNotEmpty()) {
+            val node = queue.removeFirst()
+            visited.add(node)
+            val pathsFromThisNode = paths.filter { it.from == node }
+            pathsFromThisNode.forEach {
+                nodeDistances[it.to] = max(nodeDistances[it.to]!!, nodeDistances[it.from]!! + it.distance)
+                if (!visited.contains(it.to)) {
+                    queue.add(it.to)
+                }
+            }
+        }
+        return nodeDistances[end]!!
+    }
 }
 
 data class Path(val from: Node, val to: Node, val distance: Int)
