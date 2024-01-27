@@ -19,7 +19,7 @@ class Day24Test {
     }
     @Test
     fun `check part 2 example`() {
-        Assertions.assertThat(answer2(exampleInput)).isEqualTo(0)
+        Assertions.assertThat(answer2(exampleInput)).isEqualTo(47)
     }
 
     @Test
@@ -83,4 +83,43 @@ class Day24Test {
         Assertions.assertThat(crossingPoint(a, b)).isNull()
     }
 
+    @Test
+    fun `determinant of 2d matrix`() {
+        val matrix = listOf(
+            listOf(BigDecimal("4"), BigDecimal("3")),
+            listOf(BigDecimal("2"), BigDecimal("3"))
+        )
+        Assertions.assertThat(determinant(matrix)).isEqualTo(BigDecimal("6"))
+    }
+    @Test
+    fun `determinant of 3d matrix`() {
+        val matrix = listOf(
+            listOf(BigDecimal("1"), BigDecimal("3"), BigDecimal("-2")),
+            listOf(BigDecimal("-1"), BigDecimal("2"), BigDecimal("1")),
+            listOf(BigDecimal("1"), BigDecimal("0"), BigDecimal("-2")),
+        )
+        Assertions.assertThat(determinant(matrix)).isEqualTo(BigDecimal("-3"))
+    }
+
+    @Test
+    fun `determinant of 3d matrix 2nd example`() {
+        val matrix = listOf(
+            listOf(BigDecimal("3"), BigDecimal("-4"), BigDecimal("8")),
+            listOf(BigDecimal("4"), BigDecimal("1"), BigDecimal("-2")),
+            listOf(BigDecimal("-6"), BigDecimal("-13"), BigDecimal("20")),
+        )
+        Assertions.assertThat(determinant(matrix)).isEqualTo(BigDecimal("-114"))
+    }
+
+    @Test
+    fun `check cramer`() {
+        val matrix = listOf(
+            listOf(BigDecimal("3"), BigDecimal("-4"), BigDecimal("8")),
+            listOf(BigDecimal("4"), BigDecimal("1"), BigDecimal("-2")),
+            listOf(BigDecimal("-6"), BigDecimal("-13"), BigDecimal("20")),
+        )
+        val rhs = listOf(BigDecimal(34), BigDecimal(1), BigDecimal(61))
+        Assertions.assertThat(cramer(matrix, rhs)).isEqualTo(listOf(BigDecimal("2"), BigDecimal("-1"), BigDecimal("3")))
+
+    }
 }
